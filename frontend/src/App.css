@@ -1,42 +1,421 @@
-.booking-page {
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f7fb;
+  color: #222;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+.app {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 30px;
-  background: #f4f6f8;
 }
 
-.booking-card {
-  width: 100%;
-  max-width: 550px;
-  padding: 35px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-}
+/* -----------------------------------------
+   HEADER
+----------------------------------------- */
 
-.booking-card h1 {
-  margin-bottom: 5px;
+.app-header {
   text-align: center;
-}
-
-.subtitle {
-  text-align: center;
-  color: #666;
   margin-bottom: 30px;
 }
 
-.form-section {
+.app-header h1 {
+  margin-bottom: 8px;
+  color: #17365d;
+}
+
+.app-header p {
+  margin: 0;
+  color: #666;
+}
+
+/* -----------------------------------------
+   SECTIONS
+----------------------------------------- */
+
+.section {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+.section h2 {
+  margin-top: 0;
+  color: #17365d;
+}
+
+/* -----------------------------------------
+   SEARCH
+----------------------------------------- */
+
+.search-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-group input {
+  width: 190px;
+  padding: 11px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.search-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* -----------------------------------------
+   BUTTONS
+----------------------------------------- */
+
+.primary-button,
+.secondary-button {
+  border: none;
+  border-radius: 6px;
+  padding: 11px 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary-button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #1d4ed8;
+}
+
+.secondary-button {
+  background-color: #e5e7eb;
+  color: #222;
+}
+
+.secondary-button:hover {
+  background-color: #d1d5db;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* -----------------------------------------
+   MESSAGES
+----------------------------------------- */
+
+.message {
+  max-width: 1100px;
+  margin: 0 auto 20px;
+  padding: 13px 18px;
+  border-radius: 7px;
+  font-weight: bold;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.success-message {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.info-text {
+  color: #666;
+}
+
+/* -----------------------------------------
+   FLIGHT CARDS
+----------------------------------------- */
+
+.flight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.flight-card {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #fafafa;
+}
+
+.active-flight {
+  border: 2px solid #2563eb;
+  background-color: #eff6ff;
+}
+
+.flight-main {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.flight-label,
+.flight-time span,
+.flight-info span {
+  display: block;
+  color: #777;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.flight-card h3 {
+  margin: 0 0 8px;
+  color: #17365d;
+  font-size: 22px;
+}
+
+.route {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.flight-time,
+.flight-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* -----------------------------------------
+   SEAT SECTION
+----------------------------------------- */
+
+.seat-section {
+  overflow-x: auto;
+}
+
+.seat-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 25px;
+}
+
+.seat-title h2 {
+  margin-bottom: 5px;
+}
+
+.seat-title p {
+  margin: 0;
+  color: #666;
+}
+
+/* -----------------------------------------
+   SEAT MAP
+----------------------------------------- */
+
+.seat-map-container {
+  width: fit-content;
+  margin: 0 auto;
+  padding: 25px;
+  border: 2px solid #d1d5db;
+  border-radius: 30px;
+  background-color: #f9fafb;
+}
+
+.aircraft-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #777;
+  margin: 5px 0 15px;
+}
+
+.seat-header,
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.seat-header span {
+  width: 48px;
+  text-align: center;
+  font-weight: bold;
+  color: #555;
+}
+
+.seat {
+  width: 48px;
+  height: 42px;
+  border: 2px solid #777;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* -----------------------------------------
+   SEAT STATUS
+----------------------------------------- */
+
+.seat.available {
+  background-color: lightgreen;
+  color: black;
+}
+
+.seat.available:hover {
+  border-color: #15803d;
+  transform: scale(1.05);
+}
+
+.seat.booked {
+  background-color: lightcoral;
+  color: black;
+  cursor: not-allowed;
+}
+
+.seat.locked {
+  background-color: khaki;
+  color: black;
+  cursor: not-allowed;
+}
+
+.seat.selected {
+  background-color: dodgerblue;
+  color: white;
+  border: 3px solid darkblue;
+}
+
+.seat:disabled {
+  opacity: 1;
+}
+
+/* -----------------------------------------
+   AISLE
+----------------------------------------- */
+
+.aisle {
+  width: 28px;
+  min-width: 28px;
+}
+
+/* -----------------------------------------
+   LEGEND
+----------------------------------------- */
+
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 25px 0;
+  font-weight: bold;
+}
+
+.legend div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend-box {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.available-box {
+  background-color: lightgreen;
+}
+
+.booked-box {
+  background-color: lightcoral;
+}
+
+.locked-box {
+  background-color: khaki;
+}
+
+.selected-box {
+  background-color: dodgerblue;
+}
+
+/* -----------------------------------------
+   SELECTED SEAT
+----------------------------------------- */
+
+.selected-seat-panel {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  border: 1px solid #d1d5db;
+}
+
+.selected-seat-panel h3 {
+  margin-top: 0;
+}
+
+.seat-actions {
+  margin-top: 10px;
+}
+
+/* -----------------------------------------
+   BOOKING / PASSENGER DETAILS
+----------------------------------------- */
+
+.form-section {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  padding: 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
 }
 
 .form-section h2 {
   font-size: 20px;
+  margin-top: 0;
   margin-bottom: 15px;
 }
 
-input {
+.form-section input {
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -47,36 +426,106 @@ input {
   font-size: 15px;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #222;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
+.form-section input:focus {
+  outline: none;
+  border-color: #2563eb;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.form-section .primary-button {
+  width: auto;
 }
 
-.lock-box,
-.pnr-box,
-.message {
+/* -----------------------------------------
+   SEAT LOCK
+----------------------------------------- */
+
+.lock-box {
+  max-width: 1100px;
+  margin: 0 auto 20px;
   padding: 15px;
-  margin-bottom: 20px;
   border-radius: 8px;
-  background: #f0f0f0;
+  background-color: #fff8dc;
+  border: 1px solid #e5d27a;
 }
+
+.lock-box p {
+  margin-bottom: 0;
+}
+
+/* -----------------------------------------
+   PNR
+----------------------------------------- */
 
 .pnr-box {
   text-align: center;
+  padding: 25px;
+  border-radius: 12px;
+  background-color: #dcfce7;
+  border: 1px solid #86efac;
+}
+
+.pnr-box p {
+  margin: 5px 0;
 }
 
 .pnr-box h2 {
   font-size: 28px;
   letter-spacing: 3px;
+  color: #166534;
+}
+
+/* -----------------------------------------
+   FOOTER
+----------------------------------------- */
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-size: 13px;
+}
+
+/* -----------------------------------------
+   RESPONSIVE DESIGN
+----------------------------------------- */
+
+@media (max-width: 800px) {
+  .app {
+    padding: 15px;
+  }
+
+  .section {
+    padding: 18px;
+  }
+
+  .flight-main {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-group input {
+    width: 100%;
+  }
+
+  .search-buttons {
+    width: 100%;
+  }
+
+  .search-buttons button {
+    flex: 1;
+  }
+
+  .seat-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-section .primary-button {
+    width: 100%;
+  }
 }
