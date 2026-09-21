@@ -1,17 +1,13 @@
 from fastapi import FastAPI
+from app.checkin import router as checkin_router
 
-from app.cancellation.routes import router as cancellation_router
+app = FastAPI(title="Airline Reservation System")
 
-
-app = FastAPI(
-    title="Airline Reservation System"
-)
-
-app.include_router(cancellation_router)
+app.include_router(checkin_router)
 
 
 @app.get("/")
-async def root():
+def root():
     return {
-        "message": "Airline Reservation Backend Running"
+        "message": "Airline Reservation API is running"
     }

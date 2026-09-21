@@ -1,23 +1,12 @@
 import os
-
+from pymongo import MongoClient
 from dotenv import load_dotenv
-from motor.motor_asyncio import AsyncIOMotorClient
-
 
 load_dotenv()
 
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "airline_db")
 
-MONGO_URI = os.getenv(
-    "MONGO_URI",
-    "mongodb://localhost:27017"
-)
+client = MongoClient(MONGO_URI)
 
-DB_NAME = os.getenv(
-    "DB_NAME",
-    "airline_reservation"
-)
-
-
-client = AsyncIOMotorClient(MONGO_URI)
-
-db = client[DB_NAME]
+db = client[DATABASE_NAME]

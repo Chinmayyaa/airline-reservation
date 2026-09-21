@@ -1,0 +1,414 @@
+```html
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Airline Reservation System</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+        }
+
+        .header {
+            background: #12355b;
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+
+        .container {
+            width: 700px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        h2 {
+            color: #12355b;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        input {
+            width: 35%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            margin-right: 5px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #12355b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d568f;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 12px;
+            background: #eef7ee;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        li {
+            margin: 10px 0;
+            padding: 12px;
+            background: #f5f6f8;
+            border-radius: 6px;
+            list-style: none;
+        }
+
+        ul {
+            padding: 0;
+        }
+
+        .booking {
+            background: #f1f5f9;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="header">
+
+        <h1>✈ Airline Reservation System</h1>
+
+        <p>Cancellation & Waitlist Management</p>
+
+    </div>
+
+
+    <div class="container">
+
+
+        <!-- BOOKING STATUS -->
+
+        <div class="section">
+
+            <h2>Booking Status</h2>
+
+            <div id="bookingStatus"></div>
+
+        </div>
+
+
+
+        <!-- CANCELLATION -->
+
+        <div class="section">
+
+            <h2>Cancellation</h2>
+
+            <input
+                type="text"
+                id="pnr"
+                placeholder="Enter PNR"
+            >
+
+            <button onclick="cancelBooking()">
+                Cancel Booking
+            </button>
+
+            <div id="cancelResult" class="result"></div>
+
+        </div>
+
+
+
+        <!-- WAITLIST -->
+
+        <div class="section">
+
+            <h2>Waitlist</h2>
+
+            <input
+                type="text"
+                id="name"
+                placeholder="Passenger Name"
+            >
+
+            <input
+                type="text"
+                id="waitlistPnr"
+                placeholder="Enter PNR"
+            >
+
+            <button onclick="addWaitlist()">
+                Add to Waitlist
+            </button>
+
+        </div>
+
+
+
+        <!-- WAITLISTED PASSENGERS -->
+
+        <div class="section">
+
+            <h2>Waitlisted Passengers</h2>
+
+            <ul id="waitlist"></ul>
+
+        </div>
+
+
+
+        <!-- CONFIRMED -->
+
+        <div class="section">
+
+            <h2>Confirmed Passengers</h2>
+
+            <ul id="confirmed"></ul>
+
+        </div>
+
+
+
+        <!-- CANCELLED -->
+
+        <div class="section">
+
+            <h2>Cancelled Bookings</h2>
+
+            <ul id="cancelled"></ul>
+
+        </div>
+
+
+    </div>
+
+
+
+<script>
+
+
+// Load bookings from backend
+
+async function loadBookings() {
+
+    let response = await fetch("/api/bookings");
+
+    let bookings = await response.json();
+
+    let list = document.getElementById("bookingStatus");
+
+    list.innerHTML = "";
+
+
+    bookings.forEach(function(booking) {
+
+        let item = document.createElement("div");
+
+        item.className = "booking";
+
+        item.innerText =
+            "PNR: " + booking.pnr +
+            " | Passenger: " + booking.passenger +
+            " | Seat: " + booking.seat +
+            " | Status: " + booking.status;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+
+
+// Load waitlist from backend
+
+async function loadWaitlist() {
+
+    let response = await fetch("/api/waitlist");
+
+    let waitlist = await response.json();
+
+    let list = document.getElementById("waitlist");
+
+    list.innerHTML = "";
+
+
+    waitlist.forEach(function(passenger, index) {
+
+        let item = document.createElement("li");
+
+        item.innerText =
+            "WL" + (index + 1) +
+            " - " +
+            passenger.name +
+            " - PNR: " +
+            passenger.pnr +
+            " - " +
+            passenger.status +
+            " - Seat: " +
+            passenger.seat;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+
+
+// Add passenger to waitlist
+
+async function addWaitlist() {
+
+    let name =
+        document.getElementById("name").value.trim();
+
+    let pnr =
+        document.getElementById("waitlistPnr").value.trim();
+
+
+    if (name === "" || pnr === "") {
+
+        alert("Please enter passenger name and PNR");
+
+        return;
+
+    }
+
+
+    let response = await fetch("/api/waitlist", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            name: name,
+            pnr: pnr
+        })
+
+    });
+
+
+    let result = await response.json();
+
+
+    if (result.success) {
+
+        alert(result.message);
+
+        document.getElementById("name").value = "";
+
+        document.getElementById("waitlistPnr").value = "";
+
+        loadWaitlist();
+
+    }
+
+    else {
+
+        alert(result.message);
+
+    }
+
+}
+
+
+
+// Cancel booking
+
+async function cancelBooking() {
+
+    let pnr =
+        document.getElementById("pnr").value.trim();
+
+
+    if (pnr === "") {
+
+        alert("Please enter PNR");
+
+        return;
+
+    }
+
+
+    let response = await fetch("/api/cancel", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            pnr: pnr
+        })
+
+    });
+
+
+    let result = await response.json();
+
+
+    if (result.success) {
+
+        document.getElementById("cancelResult").innerText =
+            result.message;
+
+        document.getElementById("pnr").value = "";
+
+        loadBookings();
+
+        loadWaitlist();
+
+    }
+
+    else {
+
+        document.getElementById("cancelResult").innerText =
+            result.message;
+
+    }
+
+}
+
+
+
+// Initial loading
+
+loadBookings();
+
+loadWaitlist();
+
+</script>
+
+
+</body>
+
+</html>
+```
