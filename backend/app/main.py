@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.booking.routes import router as booking_router
 from app.routes.flight_routes import router as flight_router
 from app.checkin import router as checkin_router
+from app.cancellation.routes import router as cancellation_router
 
 app = FastAPI(title="Airline Reservation System")
 
@@ -26,6 +27,9 @@ app.include_router(booking_router)
 
 # Check-in + Boarding Pass
 app.include_router(checkin_router)
+
+# Cancellation + Waitlist
+app.include_router(cancellation_router)
 
 
 @app.get("/")

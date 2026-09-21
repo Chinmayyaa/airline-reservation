@@ -1,12 +1,8 @@
 from app.database import db
 
 
-# -----------------------------
-# CANCEL BOOKING
-# -----------------------------
-
-async def cancel_booking(pnr: str):
-    booking = await db.bookings.find_one({"pnr": pnr})
+def cancel_booking(pnr: str):
+    booking = db.bookings.find_one({"pnr": pnr})
 
     if not booking:
         return {
@@ -22,30 +18,49 @@ async def cancel_booking(pnr: str):
             "message": "Booking is already cancelled"
         }
 
-    seat = booking.get("seat")
+    # Your booking module stores the seat as seat_number
+    seat_number = booking.get("seat_number")
 
-    await db.bookings.update_one(
+    # Mark booking as cancelled
+    db.bookings.update_one(
         {"pnr": pnr},
         {
             "$set": {
-                "status": "CANCELLED",
-                "seat": None
+                "status": "CANCELLED"
             }
         }
     )
 
+    # Release the seat
+    if seat_number:
+        db.seats.update_one(
+            {
+                "flight_id": booking.get("flight_id"),
+                "seat_number": seat_number
+            },
+            {
+                "$set": {
+                    "status": "AVAILABLE"
+                },
+                "$unset": {
+                    "lock_id": "",
+                    "lock_expires_at": ""
+                }
+            }
+        )
+
     # Try to promote the next waiting passenger
     promoted = None
 
-    if seat:
-        promoted = await promote_next_waitlisted(
+    if seat_number:
+        promoted = promote_next_waitlisted(
             booking.get("flight_id"),
-            seat
+            seat_number
         )
 
     if promoted:
         message = (
-            f"Booking cancelled. Seat {seat} was assigned "
+            f"Booking cancelled. Seat {seat_number} was assigned "
             f"to waitlisted passenger {promoted.get('pnr')}."
         )
     else:
@@ -58,16 +73,12 @@ async def cancel_booking(pnr: str):
     }
 
 
-# -----------------------------
-# ADD PASSENGER TO WAITLIST
-# -----------------------------
-
-async def add_to_waitlist(
+def add_to_waitlist(
     pnr: str,
     passenger_name: str,
     flight_id: str
 ):
-    existing = await db.waitlist.find_one({"pnr": pnr})
+    existing = db.waitlist.find_one({"pnr": pnr})
 
     if existing:
         return {
@@ -76,8 +87,7 @@ async def add_to_waitlist(
             "message": "Passenger is already on the waitlist"
         }
 
-    # Find current last position
-    last_entry = await db.waitlist.find_one(
+    last_entry = db.waitlist.find_one(
         {"flight_id": flight_id},
         sort=[("position", -1)]
     )
@@ -87,7 +97,7 @@ async def add_to_waitlist(
     if last_entry:
         position = last_entry.get("position", 0) + 1
 
-    await db.waitlist.insert_one(
+    db.waitlist.insert_one(
         {
             "pnr": pnr,
             "passenger_name": passenger_name,
@@ -104,33 +114,26 @@ async def add_to_waitlist(
     }
 
 
-# -----------------------------
-# GET WAITLIST
-# -----------------------------
-
-async def get_waitlist(flight_id: str):
-    cursor = db.waitlist.find(
-        {
-            "flight_id": flight_id,
-            "status": "WAITING"
-        }
-    ).sort("position", 1)
-
-    return await cursor.to_list(length=100)
+def get_waitlist(flight_id: str):
+    return list(
+        db.waitlist.find(
+            {
+                "flight_id": flight_id,
+                "status": "WAITING"
+            },
+            {"_id": 0}
+        ).sort("position", 1)
+    )
 
 
-# -----------------------------
-# PROMOTE NEXT WAITLISTED
-# -----------------------------
-
-async def promote_next_waitlisted(
+def promote_next_waitlisted(
     flight_id: str,
-    seat: str
+    seat_number: str
 ):
     if not flight_id:
         return None
 
-    passenger = await db.waitlist.find_one(
+    passenger = db.waitlist.find_one(
         {
             "flight_id": flight_id,
             "status": "WAITING"
@@ -141,14 +144,32 @@ async def promote_next_waitlisted(
     if not passenger:
         return None
 
-    await db.waitlist.update_one(
+    # Mark waitlisted passenger as confirmed
+    db.waitlist.update_one(
         {"_id": passenger["_id"]},
         {
             "$set": {
                 "status": "CONFIRMED",
-                "seat": seat
+                "seat_number": seat_number
             }
         }
     )
 
-    return passenger
+    # Reserve the released seat for the promoted passenger
+    db.seats.update_one(
+        {
+            "flight_id": flight_id,
+            "seat_number": seat_number
+        },
+        {
+            "$set": {
+                "status": "BOOKED"
+            }
+        }
+    )
+
+    return {
+        **passenger,
+        "seat_number": seat_number,
+        "status": "CONFIRMED"
+    }
