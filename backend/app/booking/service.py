@@ -33,14 +33,11 @@ def lock_seat(flight_id: str, seat_number: str):
 
     seat = db.seats.find_one_and_update(
         {
-            "flight_id": flight_id,
-            "seat_number": seat_number,
+            "flightId": flight_id,
+            "seatNumber": seat_number,
             "$or": [
                 {"status": "AVAILABLE"},
-                {
-                    "status": "LOCKED",
-                    "lock_expires_at": {"$lte": now}
-                }
+                {"status": "LOCKED", "lock_expires_at": {"$lte": now}}
             ]
         },
         {
@@ -82,8 +79,8 @@ def create_booking(
     # Confirm that this user still owns the seat lock.
     seat = db.seats.find_one_and_update(
         {
-            "flight_id": flight_id,
-            "seat_number": seat_number,
+            "flightId": flight_id,
+            "seatNumber": seat_number,
             "status": "LOCKED",
             "lock_id": lock_id,
             "lock_expires_at": {"$gt": now}

@@ -31,6 +31,18 @@ function App() {
   const [pnr, setPnr] = useState("");
 
   // -------------------------
+  // Manage Booking
+  // -------------------------
+  const [searchPnr, setSearchPnr] = useState("");
+  const [bookingDetails, setBookingDetails] = useState(null);
+  const [boardingPass, setBoardingPass] = useState(null);
+  const [loadingManageBooking, setLoadingManageBooking] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [cancellingBooking, setCancellingBooking] = useState(false);
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlist, setWaitlist] = useState([]);
+
+  // -------------------------
   // UI states
   // -------------------------
   const [loadingFlights, setLoadingFlights] = useState(false);
@@ -268,6 +280,266 @@ function App() {
       setErrorMessage("Could not connect to the booking service.");
     } finally {
       setLoadingBooking(false);
+    }
+  };
+
+  // -------------------------
+  // FIND BOOKING BY PNR
+  // -------------------------
+  const findBooking = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setBookingDetails(null);
+    setBoardingPass(null);
+
+    const enteredPnr = searchPnr.trim().toUpperCase();
+
+    if (!enteredPnr) {
+      setErrorMessage("Please enter a PNR.");
+      return;
+    }
+
+    try {
+      setLoadingManageBooking(true);
+
+      const response = await fetch(
+        `${API_URL}/api/bookings/${encodeURIComponent(enteredPnr)}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Booking not found.");
+      }
+
+      setBookingDetails(data);
+      setSuccessMessage("Booking found successfully.");
+    } catch (error) {
+      console.error("Find booking error:", error);
+      setErrorMessage(error.message || "Unable to find booking.");
+    } finally {
+      setLoadingManageBooking(false);
+    }
+  };
+
+  // -------------------------
+  // CHECK-IN
+  // -------------------------
+  const checkInPassenger = async () => {
+    if (!bookingDetails) return;
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      setCheckingIn(true);
+
+      const response = await fetch(`${API_URL}/api/checkin/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pnr: bookingDetails.pnr,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Check-in failed.");
+      }
+
+      setSuccessMessage("Check-in successful!");
+
+      // Refresh booking details
+      await findBooking();
+    } catch (error) {
+      console.error("Check-in error:", error);
+      setErrorMessage(error.message || "Unable to complete check-in.");
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
+  // -------------------------
+  // GENERATE BOARDING PASS
+  // -------------------------
+  const getBoardingPass = async () => {
+    if (!bookingDetails) return;
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      setLoadingManageBooking(true);
+
+      const response = await fetch(
+        `${API_URL}/api/checkin/${encodeURIComponent(
+          bookingDetails.pnr
+        )}/boarding-pass`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.detail || "Could not generate boarding pass."
+        );
+      }
+
+      setBoardingPass(data.boarding_pass);
+      setSuccessMessage("Boarding pass generated successfully.");
+    } catch (error) {
+      console.error("Boarding pass error:", error);
+      setErrorMessage(
+        error.message || "Unable to generate boarding pass."
+      );
+    } finally {
+      setLoadingManageBooking(false);
+    }
+  };
+
+  // -------------------------
+  // CANCEL BOOKING
+  // -------------------------
+  const cancelBooking = async () => {
+    if (!bookingDetails) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel booking ${bookingDetails.pnr}?`
+    );
+
+    if (!confirmed) return;
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      setCancellingBooking(true);
+
+      const response = await fetch(
+        `${API_URL}/api/cancellation/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pnr: bookingDetails.pnr,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Cancellation failed.");
+      }
+
+      setSuccessMessage(data.message || "Booking cancelled successfully.");
+
+      setBookingDetails((previous) =>
+        previous
+          ? {
+              ...previous,
+              status: data.status,
+            }
+          : previous
+      );
+
+      setBoardingPass(null);
+    } catch (error) {
+      console.error("Cancellation error:", error);
+      setErrorMessage(
+        error.message || "Unable to cancel booking."
+      );
+    } finally {
+      setCancellingBooking(false);
+    }
+  };
+
+  // -------------------------
+  // ADD TO WAITLIST
+  // -------------------------
+  const addToWaitlist = async () => {
+    if (!bookingDetails) return;
+
+    if (!waitlistName.trim()) {
+      setErrorMessage("Please enter passenger name.");
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      setLoadingManageBooking(true);
+
+      const response = await fetch(
+        `${API_URL}/api/cancellation/waitlist`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pnr: bookingDetails.pnr,
+            passenger_name: waitlistName.trim(),
+            flight_id: bookingDetails.flight_id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Could not join waitlist.");
+      }
+
+      setSuccessMessage(data.message);
+      setWaitlistName("");
+    } catch (error) {
+      console.error("Waitlist error:", error);
+      setErrorMessage(
+        error.message || "Unable to join waitlist."
+      );
+    } finally {
+      setLoadingManageBooking(false);
+    }
+  };
+
+  // -------------------------
+  // VIEW WAITLIST
+  // -------------------------
+  const loadWaitlist = async () => {
+    if (!bookingDetails) return;
+
+    setErrorMessage("");
+
+    try {
+      setLoadingManageBooking(true);
+
+      const response = await fetch(
+        `${API_URL}/api/cancellation/waitlist/${encodeURIComponent(
+          bookingDetails.flight_id
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Could not load waitlist.");
+      }
+
+      setWaitlist(data || []);
+    } catch (error) {
+      console.error("Waitlist loading error:", error);
+      setErrorMessage(
+        error.message || "Unable to load waitlist."
+      );
+    } finally {
+      setLoadingManageBooking(false);
     }
   };
 
@@ -641,6 +913,233 @@ function App() {
           </div>
         </section>
       )}
+
+      {/* MANAGE BOOKING */}
+      <section className="section manage-booking-section">
+        <h2>Manage Booking</h2>
+
+        <p className="info-text">
+          Enter your PNR to view your booking, check in, generate your
+          boarding pass, or cancel your booking.
+        </p>
+
+        <div className="pnr-search">
+          <input
+            type="text"
+            placeholder="Enter PNR e.g. LHQJMD"
+            value={searchPnr}
+            onChange={(e) =>
+              setSearchPnr(e.target.value.toUpperCase())
+            }
+            maxLength={6}
+          />
+
+          <button
+            className="primary-button"
+            onClick={findBooking}
+            disabled={loadingManageBooking}
+          >
+            {loadingManageBooking ? "Searching..." : "Find Booking"}
+          </button>
+        </div>
+
+        {/* BOOKING DETAILS */}
+        {bookingDetails && (
+          <div className="booking-details-card">
+            <h3>Booking Details</h3>
+
+            <div className="booking-details-grid">
+              <div>
+                <span>PNR</span>
+                <strong>{bookingDetails.pnr}</strong>
+              </div>
+
+              <div>
+                <span>Passenger</span>
+                <strong>{bookingDetails.passenger_name}</strong>
+              </div>
+
+              <div>
+                <span>Flight</span>
+                <strong>{bookingDetails.flight_id}</strong>
+              </div>
+
+              <div>
+                <span>Seat</span>
+                <strong>{bookingDetails.seat_number}</strong>
+              </div>
+
+              <div>
+                <span>Email</span>
+                <strong>{bookingDetails.passenger_email}</strong>
+              </div>
+
+              <div>
+                <span>Phone</span>
+                <strong>{bookingDetails.passenger_phone}</strong>
+              </div>
+
+              <div>
+                <span>Status</span>
+
+                <strong
+                  className={
+                    bookingDetails.status === "CANCELLED"
+                      ? "status-cancelled"
+                      : bookingDetails.check_in_status === "checked_in"
+                      ? "status-checked-in"
+                      : "status-confirmed"
+                  }
+                >
+                  {bookingDetails.check_in_status === "checked_in"
+                    ? "CHECKED IN"
+                    : bookingDetails.status}
+                </strong>
+              </div>
+            </div>
+
+            {/* BOOKING ACTIONS */}
+            {bookingDetails.status !== "CANCELLED" && (
+              <div className="manage-actions">
+
+                {bookingDetails.check_in_status === "checked_in" ? (
+                  <button
+                    className="primary-button"
+                    onClick={getBoardingPass}
+                    disabled={loadingManageBooking}
+                  >
+                    {loadingManageBooking
+                      ? "Generating..."
+                      : "🎫 Generate Boarding Pass"}
+                  </button>
+                ) : (
+                  <button
+                    className="primary-button"
+                    onClick={checkInPassenger}
+                    disabled={checkingIn}
+                  >
+                    {checkingIn ? "Checking in..." : "✓ Check-in"}
+                  </button>
+                )}
+
+                <button
+                  className="cancel-button"
+                  onClick={cancelBooking}
+                  disabled={cancellingBooking}
+                >
+                  {cancellingBooking
+                    ? "Cancelling..."
+                    : "Cancel Booking"}
+                </button>
+
+              </div>
+            )}
+
+            {/* BOARDING PASS */}
+            {boardingPass && (
+              <div className="boarding-pass">
+                <h3>✈️ Boarding Pass</h3>
+
+                <div className="boarding-pass-grid">
+                  <div>
+                    <span>PNR</span>
+                    <strong>{boardingPass.pnr}</strong>
+                  </div>
+
+                  <div>
+                    <span>Passenger</span>
+                    <strong>{boardingPass.passenger_name}</strong>
+                  </div>
+
+                  <div>
+                    <span>Flight</span>
+                    <strong>{boardingPass.flight_number}</strong>
+                  </div>
+
+                  <div>
+                    <span>From</span>
+                    <strong>{boardingPass.from}</strong>
+                  </div>
+
+                  <div>
+                    <span>To</span>
+                    <strong>{boardingPass.to}</strong>
+                  </div>
+
+                  <div>
+                    <span>Travel Date</span>
+                    <strong>{boardingPass.travel_date}</strong>
+                  </div>
+
+                  <div>
+                    <span>Seat</span>
+                    <strong>{boardingPass.seat_number}</strong>
+                  </div>
+                </div>
+
+                <div className="boarding-status">
+                  {boardingPass.boarding_status}
+                </div>
+              </div>
+            )}
+
+            {/* WAITLIST */}
+            <div className="waitlist-section">
+              <h3>Waitlist</h3>
+
+              <div className="waitlist-form">
+                <input
+                  type="text"
+                  placeholder="Passenger name"
+                  value={waitlistName}
+                  onChange={(e) => setWaitlistName(e.target.value)}
+                />
+
+                <button
+                  className="secondary-button"
+                  onClick={addToWaitlist}
+                  disabled={loadingManageBooking}
+                >
+                  Add to Waitlist
+                </button>
+
+                <button
+                  className="secondary-button"
+                  onClick={loadWaitlist}
+                  disabled={loadingManageBooking}
+                >
+                  View Waitlist
+                </button>
+              </div>
+
+              {waitlist.length > 0 && (
+                <div className="waitlist-list">
+                  {waitlist.map((person, index) => (
+                    <div
+                      className="waitlist-item"
+                      key={person.pnr || index}
+                    >
+                      <strong>#{person.position}</strong>
+
+                      <span>{person.passenger_name}</span>
+
+                      <span>{person.pnr}</span>
+
+                      <span>{person.status}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {waitlist.length === 0 && (
+                <p className="info-text">
+                  No passengers currently on the waitlist.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
 
       <footer>
         <p>

@@ -529,3 +529,227 @@ footer {
     width: 100%;
   }
 }
+
+/* -----------------------------------------
+   MANAGE BOOKING
+----------------------------------------- */
+
+.manage-booking-section {
+  margin-top: 30px;
+}
+
+.pnr-search {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  max-width: 600px;
+}
+
+.pnr-search input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.pnr-search input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.booking-details-card {
+  margin-top: 25px;
+  padding: 22px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background-color: #f8fafc;
+}
+
+.booking-details-card h3 {
+  margin-top: 0;
+  color: #17365d;
+}
+
+.booking-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.booking-details-grid div,
+.boarding-pass-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.booking-details-grid span,
+.boarding-pass-grid span {
+  color: #777;
+  font-size: 13px;
+}
+
+.booking-details-grid strong,
+.boarding-pass-grid strong {
+  color: #222;
+}
+
+.status-confirmed {
+  color: #166534 !important;
+}
+
+.status-cancelled {
+  color: #991b1b !important;
+}
+
+.manage-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.cancel-button {
+  border: none;
+  border-radius: 6px;
+  padding: 11px 18px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #dc2626;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #b91c1c;
+}
+
+.cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* -----------------------------------------
+   BOARDING PASS
+----------------------------------------- */
+
+.boarding-pass {
+  margin-top: 25px;
+  padding: 25px;
+  border: 2px dashed #2563eb;
+  border-radius: 12px;
+  background-color: white;
+}
+
+.boarding-pass h3 {
+  margin-top: 0;
+  color: #17365d;
+}
+
+.boarding-pass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.boarding-status {
+  margin-top: 20px;
+  padding: 12px;
+  text-align: center;
+  border-radius: 6px;
+  background-color: #dcfce7;
+  color: #166534;
+  font-weight: bold;
+}
+
+/* -----------------------------------------
+   WAITLIST
+----------------------------------------- */
+
+.waitlist-section {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #d1d5db;
+}
+
+.waitlist-section h3 {
+  color: #17365d;
+}
+
+.waitlist-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.waitlist-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 11px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+
+.waitlist-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.waitlist-item {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 120px;
+  gap: 15px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+}
+
+/* -----------------------------------------
+   MANAGE BOOKING RESPONSIVE
+----------------------------------------- */
+
+@media (max-width: 800px) {
+  .pnr-search {
+    flex-direction: column;
+    max-width: none;
+  }
+
+  .booking-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .boarding-pass-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manage-actions {
+    flex-direction: column;
+  }
+
+  .manage-actions button {
+    width: 100%;
+  }
+
+  .waitlist-form {
+    flex-direction: column;
+  }
+
+  .waitlist-form input,
+  .waitlist-form button {
+    width: 100%;
+  }
+
+  .waitlist-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+.status-checked-in {
+  color: #2563eb !important;
+}

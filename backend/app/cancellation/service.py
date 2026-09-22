@@ -18,25 +18,21 @@ def cancel_booking(pnr: str):
             "message": "Booking is already cancelled"
         }
 
-    # Your booking module stores the seat as seat_number
+    flight_id = booking.get("flight_id")
     seat_number = booking.get("seat_number")
 
     # Mark booking as cancelled
     db.bookings.update_one(
         {"pnr": pnr},
-        {
-            "$set": {
-                "status": "CANCELLED"
-            }
-        }
+        {"$set": {"status": "CANCELLED"}}
     )
 
     # Release the seat
-    if seat_number:
+    if flight_id and seat_number:
         db.seats.update_one(
             {
-                "flight_id": booking.get("flight_id"),
-                "seat_number": seat_number
+                "flightId": flight_id,
+                "seatNumber": seat_number
             },
             {
                 "$set": {
@@ -49,12 +45,12 @@ def cancel_booking(pnr: str):
             }
         )
 
-    # Try to promote the next waiting passenger
+    # Promote next waiting passenger
     promoted = None
 
-    if seat_number:
+    if flight_id and seat_number:
         promoted = promote_next_waitlisted(
-            booking.get("flight_id"),
+            flight_id,
             seat_number
         )
 
@@ -144,7 +140,7 @@ def promote_next_waitlisted(
     if not passenger:
         return None
 
-    # Mark waitlisted passenger as confirmed
+    # Promote passenger
     db.waitlist.update_one(
         {"_id": passenger["_id"]},
         {
@@ -155,11 +151,11 @@ def promote_next_waitlisted(
         }
     )
 
-    # Reserve the released seat for the promoted passenger
+    # Book the released seat
     db.seats.update_one(
         {
-            "flight_id": flight_id,
-            "seat_number": seat_number
+            "flightId": flight_id,
+            "seatNumber": seat_number
         },
         {
             "$set": {

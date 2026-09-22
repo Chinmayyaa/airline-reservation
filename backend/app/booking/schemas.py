@@ -36,3 +36,5 @@ class BookingResponse(BaseModel):
     status: str
     created_at: datetime
     lock_expires_at: Optional[datetime] = None
+    check_in_status: Optional[str] = None
+    check_in_time: Optional[datetime] = None
