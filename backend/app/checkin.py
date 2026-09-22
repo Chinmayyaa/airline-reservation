@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
-
+from datetime import datetime, timezone
 from .database import db
 
 
@@ -97,13 +96,13 @@ def check_in(request: CheckInRequest):
         )
 
     # Check whether booking is confirmed
-    if booking.get("status") not in [None, "confirmed"]:
+    if booking.get("status") not in [None, "CONFIRMED", "confirmed"]:
         raise HTTPException(
             status_code=400,
             detail="Only confirmed bookings can check in"
         )
 
-    checkin_time = datetime.utcnow()
+    checkin_time = datetime.now(timezone.utc)
 
     db.bookings.update_one(
         {"pnr": pnr},
@@ -149,13 +148,30 @@ def generate_boarding_pass(pnr: str):
             detail="Passenger must complete check-in first"
         )
 
+    flight = db.flights.find_one(
+        {"flightId": booking.get("flight_id")},
+        {"_id": 0}
+    )
+
     boarding_pass = {
         "pnr": pnr,
         "passenger_name": booking.get("passenger_name"),
-        "flight_number": booking.get("flight_number"),
-        "from": booking.get("from"),
-        "to": booking.get("to"),
-        "travel_date": booking.get("travel_date"),
+        "flight_number": (
+            booking.get("flight_number")
+            or (flight or {}).get("flightNumber")
+        ),
+        "from": (
+            booking.get("from")
+            or (flight or {}).get("source")
+        ),
+        "to": (
+            booking.get("to")
+            or (flight or {}).get("destination")
+        ),
+        "travel_date": (
+            booking.get("travel_date")
+            or (flight or {}).get("date")
+        ),
         "seat_number": booking.get("seat_number"),
         "boarding_status": "READY"
     }
